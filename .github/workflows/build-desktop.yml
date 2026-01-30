@@ -1,0 +1,52 @@
+name: Build Desktop Apps
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            task: packageDmg
+            artifact: composeApp/build/compose/binaries/main/dmg/*.dmg
+            name: macOS
+          - os: windows-latest
+            task: packageMsi
+            artifact: composeApp/build/compose/binaries/main/msi/*.msi
+            name: Windows
+
+    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        if: matrix.os != 'windows-latest'
+
+      - name: Build
+        run: ./gradlew ${{ matrix.task }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NerdScribe-${{ matrix.name }}
+          path: ${{ matrix.artifact }}
+          retention-days: 14

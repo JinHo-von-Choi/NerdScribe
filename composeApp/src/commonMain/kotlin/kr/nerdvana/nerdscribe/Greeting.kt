@@ -1,0 +1,9 @@
+package kr.nerdvana.nerdscribe
+
+class Greeting {
+    private val platform = getPlatform()
+
+    fun greet(): String {
+        return "Hello, ${platform.name}!"
+    }
+}
