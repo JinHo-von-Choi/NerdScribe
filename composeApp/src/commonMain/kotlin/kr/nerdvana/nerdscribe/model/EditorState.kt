@@ -29,7 +29,7 @@ fun main() {
 
 > 인용문도 사용할 수 있습니다.
 
-즐거운 작성 되세요! 🚀
+즐겁게 작성하세요! 🚀
     """.trimIndent(),
     val filePath: String? = null,
     val fileName: String = "제목 없음.md",
