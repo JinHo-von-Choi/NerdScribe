@@ -3,6 +3,7 @@ name: Build Desktop Apps
 on:
   push:
     branches: [ main, master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -16,10 +17,12 @@ jobs:
             task: packageDmg
             artifact: composeApp/build/compose/binaries/main/dmg/*.dmg
             name: macOS
+            extension: dmg
           - os: windows-latest
             task: packageMsi
             artifact: composeApp/build/compose/binaries/main/msi/*.msi
             name: Windows
+            extension: msi
 
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.name }}
@@ -50,3 +53,44 @@ jobs:
           name: NerdScribe-${{ matrix.name }}
           path: ${{ matrix.artifact }}
           retention-days: 14
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    name: Create Release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NerdScribe-macOS
+          path: artifacts/macos
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NerdScribe-Windows
+          path: artifacts/windows
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Rename artifacts
+        run: |
+          mv artifacts/macos/*.dmg "artifacts/NerdScribe-${{ steps.version.outputs.VERSION }}-macOS.dmg"
+          mv artifacts/windows/*.msi "artifacts/NerdScribe-${{ steps.version.outputs.VERSION }}-Windows.msi"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: NerdScribe v${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/NerdScribe-${{ steps.version.outputs.VERSION }}-macOS.dmg
+            artifacts/NerdScribe-${{ steps.version.outputs.VERSION }}-Windows.msi
