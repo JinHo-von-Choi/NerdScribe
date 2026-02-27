@@ -25,7 +25,7 @@ fun PreviewPane(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceDim)
     ) {
         Markdown(
             content = content,

@@ -23,21 +23,16 @@ class EditorViewModel : ViewModel() {
     }
 
     fun updateContent(newContent: String) {
-        _state.update { currentState ->
-            currentState.copy(
-                content = newContent,
-                isDirty = newContent != currentState.content || currentState.isDirty
-            )
-        }
+        _state.update { it.copy(content = newContent) }
     }
 
     fun openFile(filePath: String, content: String) {
         val fileName = filePath.substringAfterLast("/").substringAfterLast("\\")
         _state.value = EditorState(
-            content = content,
-            filePath = filePath,
-            fileName = fileName,
-            isDirty = false
+            content      = content,
+            savedContent = content,
+            filePath     = filePath,
+            fileName     = fileName
         )
     }
 
@@ -47,9 +42,9 @@ class EditorViewModel : ViewModel() {
             val fileName = path.substringAfterLast("/").substringAfterLast("\\")
             _state.update { currentState ->
                 currentState.copy(
-                    filePath = path,
-                    fileName = fileName,
-                    isDirty = false
+                    filePath     = path,
+                    fileName     = fileName,
+                    savedContent = currentState.content
                 )
             }
         }
@@ -60,6 +55,6 @@ class EditorViewModel : ViewModel() {
     }
 
     fun markAsSaved() {
-        _state.update { it.copy(isDirty = false) }
+        _state.update { it.copy(savedContent = it.content) }
     }
 }
